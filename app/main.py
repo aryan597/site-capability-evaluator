@@ -77,7 +77,10 @@ def create_app(
     async def evaluate_endpoint(request: EvaluateRequest) -> EvaluateResponse:
         if app.state.llm is None:
             app.state.llm = make_llm_client(
-                settings.llm_provider, settings.llm_model, settings.llm_api_key
+                settings.llm_provider,
+                settings.llm_model,
+                settings.llm_api_key,
+                settings.llm_base_url,
             )
         return await evaluate(request, app.state.catalog_client, app.state.llm, settings)
 

@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 SETTINGS = Settings(
     catalog_base="http://catalog.test", llm_provider="fake", llm_model="fake",
-    llm_api_key=None, catalog_timeout_s=5, llm_max_concurrency=4,
+    llm_api_key=None, llm_base_url=None, catalog_timeout_s=5, llm_max_concurrency=4,
 )
 
 # Scripted verdicts matching what a competent LLM says about acme-hr.

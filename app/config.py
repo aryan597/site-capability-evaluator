@@ -17,6 +17,7 @@ class Settings:
     llm_provider: str
     llm_model: str
     llm_api_key: str | None
+    llm_base_url: str | None
     catalog_timeout_s: float
     llm_max_concurrency: int
 
@@ -27,6 +28,7 @@ def load_settings() -> Settings:
         llm_provider=os.environ.get("LLM_PROVIDER", "anthropic"),
         llm_model=os.environ.get("LLM_MODEL", "claude-sonnet-5"),
         llm_api_key=os.environ.get("LLM_API_KEY") or os.environ.get("ANTHROPIC_API_KEY"),
+        llm_base_url=os.environ.get("LLM_BASE_URL"),
         catalog_timeout_s=float(os.environ.get("CATALOG_TIMEOUT_S", "5")),
         llm_max_concurrency=int(os.environ.get("LLM_MAX_CONCURRENCY", "4")),
     )

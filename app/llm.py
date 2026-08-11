@@ -20,11 +20,20 @@ class LLMClient(Protocol):
 
 
 class AnthropicClient:
-    def __init__(self, model: str, api_key: str | None):
-        if not api_key:
+    """Anthropic Messages API — or anything speaking it.
+
+    base_url makes this client point at any Anthropic-compatible server
+    (e.g. LM Studio's local /v1/messages endpoint), in which case the
+    api_key can be a placeholder.
+    """
+
+    def __init__(self, model: str, api_key: str | None, base_url: str | None = None):
+        if not api_key and not base_url:
             raise LLMError("LLM_API_KEY (or ANTHROPIC_API_KEY) is not set")
         self._model = model
-        self._client = anthropic.AsyncAnthropic(api_key=api_key)
+        self._client = anthropic.AsyncAnthropic(
+            api_key=api_key or "local-server", base_url=base_url
+        )
 
     async def complete(self, system: str, user: str) -> str:
         try:
@@ -43,7 +52,9 @@ class AnthropicClient:
         return "".join(parts)
 
 
-def make_llm_client(provider: str, model: str, api_key: str | None) -> LLMClient:
+def make_llm_client(
+    provider: str, model: str, api_key: str | None, base_url: str | None = None
+) -> LLMClient:
     if provider == "anthropic":
-        return AnthropicClient(model=model, api_key=api_key)
+        return AnthropicClient(model=model, api_key=api_key, base_url=base_url)
     raise LLMError(f"unknown LLM provider: {provider!r}")

@@ -28,6 +28,19 @@ curl -s -X POST http://127.0.0.1:8000/v1/evaluate \
   -d @fixtures/sites/acme-hr.input.json
 ```
 
+### Running against a local model (no API key)
+
+Anything that speaks the Anthropic Messages API works. With LM Studio serving a model locally:
+
+```bash
+export CATALOG_BASE=http://127.0.0.1:9001
+export LLM_BASE_URL=http://127.0.0.1:1234
+export LLM_MODEL=hermes-3-llama-3.1-8b     # whatever model LM Studio has loaded
+uvicorn app.main:app --port 8000
+```
+
+Same code path as production — only env differs. (Small local models produce noticeably weaker feature verdicts than Claude; see the accuracy discussion in §2 below.)
+
 ### Docker
 
 ```bash
@@ -43,6 +56,7 @@ The container starts from env alone. Configuration:
 | `LLM_PROVIDER` | `anthropic` | Provider behind the one-method LLM seam |
 | `LLM_MODEL` | `claude-sonnet-5` | Model id |
 | `LLM_API_KEY` / `ANTHROPIC_API_KEY` | — | Key (required only for real evaluations) |
+| `LLM_BASE_URL` | — | Point the Anthropic-compatible client at another server (e.g. LM Studio); key becomes optional |
 | `CATALOG_TIMEOUT_S` | `5` | Catalog fetch timeout |
 | `LLM_MAX_CONCURRENCY` | `4` | Parallel cluster calls cap |
 

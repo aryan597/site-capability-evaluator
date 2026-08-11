@@ -1,6 +1,5 @@
 import asyncio
 import json
-import re
 from pathlib import Path
 
 import pytest
@@ -8,6 +7,7 @@ import pytest
 from app.catalog import Catalog
 from app.inference import BAND_SCORES, PageEvidence, infer_features
 from app.llm import LLMError
+from tests.fakes import ScriptedLLM, verdict_json
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = Catalog.model_validate(
@@ -15,27 +15,6 @@ CATALOG = Catalog.model_validate(
 )
 
 PAGES = [PageEvidence(url="https://x.example", sourceType="marketing", text="hello")]
-
-
-class ScriptedLLM:
-    """Fake LLM: returns a canned reply per cluster (parsed from the prompt)."""
-
-    def __init__(self, replies_by_cluster: dict[str, str]):
-        self._replies = replies_by_cluster
-        self.calls: list[str] = []
-
-    async def complete(self, system: str, user: str) -> str:
-        cluster = re.match(r"Feature cluster: (.+)", user).group(1)
-        self.calls.append(cluster)
-        return self._replies[cluster]
-
-
-def verdict_json(*items) -> str:
-    return json.dumps({"features": list(items)})
-
-
-def all_absent(cluster_name: str) -> str:
-    return verdict_json()  # no verdicts: parser fills everything as absent
 
 
 def test_one_call_per_cluster_and_every_feature_gets_a_verdict():

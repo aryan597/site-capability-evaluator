@@ -37,6 +37,11 @@ Not part of the submission docs — these are recording notes. Speak it, don't r
 - Gated site: "the login wall is itself evidence — then pivot to pricing, docs, signup structure, third-party listings; report public-only and let the access factor lower overall confidence — that part is already implemented."
 - Bounds: robots.txt, rate limits, GET-only, and never real logins against third-party IdPs.
 
+## Optional exhibit: the local-model runs (~30s, if time allows)
+
+- "I also ran the same service against a local 8B model via LLM_BASE_URL — same code, different env. Two runs at temperature 0 gave *different* verdicts: one hallucinated iframes from a 'Forgot your password?' link, which cascaded into the wrong archetype."
+- Point: "the deterministic layer stayed exact both times — every rollup was correct for the verdicts it was given. That's why the boundary sits where it sits, and why verdict accuracy (model choice) is the lever that matters."
+
 ## 6. Two more weeks (~1 min)
 
 - Eval set of labeled sites to *measure* feature-inference accuracy — "the one number the service's usefulness hangs on; it's where my 8th hour goes."

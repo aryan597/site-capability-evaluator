@@ -1,0 +1,481 @@
+openapi: 3.1.0
+info:
+  title: Site Capability Evaluator
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Health Get
+  /version:
+    get:
+      summary: Version
+      operationId: version_version_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Version Version Get
+  /v1/evaluate:
+    post:
+      summary: Evaluate what testing a site would require
+      description: 'Pass-in mode: judge feature presence from the supplied pages,
+        then derive required capabilities deterministically from the catalog. A gated
+        site is NOT an error: it returns 200 with a weaker accessOutcome and lower
+        confidence.'
+      operationId: evaluate_endpoint_v1_evaluate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluateRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateResponse'
+        '400':
+          description: Pinned catalog version does not exist (CATALOG_VERSION_NOT_FOUND).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request body does not match the schema (VALIDATION_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '501':
+          description: No content.pages given; live mode is not implemented in v1
+            (LIVE_MODE_NOT_IMPLEMENTED).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '502':
+          description: LLM provider failed or returned unusable output (LLM_ERROR).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Catalog API unreachable and nothing cached (CATALOG_UNAVAILABLE).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Access:
+      properties:
+        loginUrl:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Loginurl
+        credentials:
+          anyOf:
+          - $ref: '#/components/schemas/Credentials'
+          - type: 'null'
+        sessionCookies:
+          items:
+            $ref: '#/components/schemas/SessionCookie'
+          type: array
+          title: Sessioncookies
+        notes:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notes
+      type: object
+      title: Access
+    ArchetypeOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        confidence:
+          type: number
+          title: Confidence
+      type: object
+      required:
+      - id
+      - confidence
+      title: ArchetypeOut
+    Content:
+      properties:
+        pages:
+          items:
+            $ref: '#/components/schemas/Page'
+          type: array
+          title: Pages
+        extraSignals:
+          additionalProperties: true
+          type: object
+          title: Extrasignals
+      type: object
+      required:
+      - pages
+      title: Content
+    Credentials:
+      properties:
+        username:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Username
+        password:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Password
+        secrets:
+          additionalProperties:
+            type: string
+          type: object
+          title: Secrets
+      type: object
+      title: Credentials
+    ErrorBody:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - code
+      - message
+      title: ErrorBody
+    ErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+      type: object
+      required:
+      - error
+      title: ErrorResponse
+    EvaluateRequest:
+      properties:
+        site:
+          $ref: '#/components/schemas/Site'
+        content:
+          anyOf:
+          - $ref: '#/components/schemas/Content'
+          - type: 'null'
+        access:
+          anyOf:
+          - $ref: '#/components/schemas/Access'
+          - type: 'null'
+        options:
+          anyOf:
+          - $ref: '#/components/schemas/Options'
+          - type: 'null'
+        catalogVersion:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Catalogversion
+      additionalProperties: false
+      type: object
+      required:
+      - site
+      title: EvaluateRequest
+    EvaluateResponse:
+      properties:
+        catalogVersion:
+          type: string
+          title: Catalogversion
+        evaluatorVersion:
+          type: string
+          title: Evaluatorversion
+        archetype:
+          $ref: '#/components/schemas/ArchetypeOut'
+        inferredFeatures:
+          items:
+            $ref: '#/components/schemas/InferredFeatureOut'
+          type: array
+          title: Inferredfeatures
+        requiredCapabilities:
+          items:
+            $ref: '#/components/schemas/RequiredCapabilityOut'
+          type: array
+          title: Requiredcapabilities
+        overallConfidence:
+          type: number
+          title: Overallconfidence
+        investigation:
+          $ref: '#/components/schemas/Investigation'
+        trace:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Trace
+      type: object
+      required:
+      - catalogVersion
+      - evaluatorVersion
+      - archetype
+      - inferredFeatures
+      - requiredCapabilities
+      - overallConfidence
+      - investigation
+      title: EvaluateResponse
+    EvidenceSource:
+      properties:
+        type:
+          type: string
+          title: Type
+        url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Url
+        used:
+          type: boolean
+          title: Used
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Note
+      type: object
+      required:
+      - type
+      - used
+      title: EvidenceSource
+    InferredFeatureOut:
+      properties:
+        featureId:
+          type: string
+          title: Featureid
+        present:
+          type: boolean
+          title: Present
+        criticality:
+          type: string
+          enum:
+          - must
+          - should
+          - nice
+          title: Criticality
+        confidence:
+          type: number
+          title: Confidence
+        evidence:
+          type: string
+          title: Evidence
+      type: object
+      required:
+      - featureId
+      - present
+      - criticality
+      - confidence
+      - evidence
+      title: InferredFeatureOut
+    Investigation:
+      properties:
+        mode:
+          type: string
+          enum:
+          - live
+          - passed-in
+          - mixed
+          title: Mode
+        accessOutcome:
+          type: string
+          enum:
+          - authenticated
+          - public-only
+          - partial
+          - blocked
+          title: Accessoutcome
+        evidenceSources:
+          items:
+            $ref: '#/components/schemas/EvidenceSource'
+          type: array
+          title: Evidencesources
+        pagesUsed:
+          type: integer
+          title: Pagesused
+      type: object
+      required:
+      - mode
+      - accessOutcome
+      - evidenceSources
+      - pagesUsed
+      title: Investigation
+    LiveCrawlOptions:
+      properties:
+        enabled:
+          type: boolean
+          title: Enabled
+          default: false
+        maxPages:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Maxpages
+        timeBudgetMs:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Timebudgetms
+      type: object
+      title: LiveCrawlOptions
+    Options:
+      properties:
+        liveCrawl:
+          anyOf:
+          - $ref: '#/components/schemas/LiveCrawlOptions'
+          - type: 'null'
+        model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model
+        debug:
+          type: boolean
+          title: Debug
+          default: false
+      type: object
+      title: Options
+    Page:
+      properties:
+        url:
+          type: string
+          title: Url
+        sourceType:
+          type: string
+          enum:
+          - app
+          - marketing
+          - pricing
+          - docs
+          - login
+          - signup
+          - external
+          - other
+          title: Sourcetype
+        text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Text
+        html:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Html
+        title:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Title
+        httpStatus:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Httpstatus
+        notes:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Notes
+      type: object
+      required:
+      - url
+      - sourceType
+      title: Page
+    RequiredCapabilityOut:
+      properties:
+        capabilityId:
+          type: string
+          title: Capabilityid
+        minLevel:
+          type: integer
+          title: Minlevel
+        criticality:
+          type: string
+          enum:
+          - must
+          - should
+          - nice
+          title: Criticality
+        confidence:
+          type: number
+          title: Confidence
+        sourceFeatureIds:
+          items:
+            type: string
+          type: array
+          title: Sourcefeatureids
+        reasoning:
+          type: string
+          title: Reasoning
+      type: object
+      required:
+      - capabilityId
+      - minLevel
+      - criticality
+      - confidence
+      - sourceFeatureIds
+      - reasoning
+      title: RequiredCapabilityOut
+    SessionCookie:
+      properties:
+        name:
+          type: string
+          title: Name
+        value:
+          type: string
+          title: Value
+        domain:
+          type: string
+          title: Domain
+      type: object
+      required:
+      - name
+      - value
+      - domain
+      title: SessionCookie
+    Site:
+      properties:
+        domain:
+          type: string
+          minLength: 1
+          title: Domain
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+        archetypeHint:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Archetypehint
+      type: object
+      required:
+      - domain
+      title: Site

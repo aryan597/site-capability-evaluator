@@ -25,7 +25,15 @@ from app.catalog import CatalogClient, CatalogUnavailable, CatalogVersionNotFoun
 from app.config import EVALUATOR_VERSION, Settings, load_settings
 from app.evaluator import LiveModeUnsupported, evaluate
 from app.llm import LLMClient, LLMError, make_llm_client
-from app.models import EvaluateRequest, EvaluateResponse
+from app.models import ErrorResponse, EvaluateRequest, EvaluateResponse
+
+_ERROR_RESPONSES = {
+    400: {"model": ErrorResponse, "description": "Pinned catalog version does not exist (CATALOG_VERSION_NOT_FOUND)."},
+    422: {"model": ErrorResponse, "description": "Request body does not match the schema (VALIDATION_ERROR)."},
+    501: {"model": ErrorResponse, "description": "No content.pages given; live mode is not implemented in v1 (LIVE_MODE_NOT_IMPLEMENTED)."},
+    502: {"model": ErrorResponse, "description": "LLM provider failed or returned unusable output (LLM_ERROR)."},
+    503: {"model": ErrorResponse, "description": "Catalog API unreachable and nothing cached (CATALOG_UNAVAILABLE)."},
+}
 
 
 def _error(status: int, code: str, message: str) -> JSONResponse:
@@ -53,7 +61,19 @@ def create_app(
     def version() -> dict:
         return {"evaluatorVersion": EVALUATOR_VERSION}
 
-    @app.post("/v1/evaluate", response_model=EvaluateResponse, response_model_exclude_none=True)
+    @app.post(
+        "/v1/evaluate",
+        response_model=EvaluateResponse,
+        response_model_exclude_none=True,
+        responses=_ERROR_RESPONSES,
+        summary="Evaluate what testing a site would require",
+        description=(
+            "Pass-in mode: judge feature presence from the supplied pages, then "
+            "derive required capabilities deterministically from the catalog. "
+            "A gated site is NOT an error: it returns 200 with a weaker "
+            "accessOutcome and lower confidence."
+        ),
+    )
     async def evaluate_endpoint(request: EvaluateRequest) -> EvaluateResponse:
         if app.state.llm is None:
             app.state.llm = make_llm_client(

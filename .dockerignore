@@ -1,0 +1,11 @@
+.git/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+.venv/
+tests/
+fixtures/
+docs/
+scripts/
+mock_catalog/

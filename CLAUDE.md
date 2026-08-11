@@ -4,40 +4,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A take-home exercise: build the **Evaluator**, a stateless HTTP service that answers one question — *"Given this company's website, which agent capabilities (at what minimum level) would testing it require?"* The full brief is in [README.md](README.md); read it before making design decisions. As of now the repo contains only the brief and fixtures — **no implementation, build tooling, or tests exist yet**, and it is not a git repository. When code is added, record the actual build/test/run commands here.
+A take-home submission: the **Evaluator**, a stateless FastAPI service answering *"which agent capabilities (at what minimum level) would testing this site require?"* The assignment brief is [docs/BRIEF.md](docs/BRIEF.md); the solution write-up (design decisions, §5 answers) is [README.md](README.md). Python 3.10+, no database, no persistence.
 
-## Core architecture (from the brief)
+## Commands
 
-- **Input:** `POST /v1/evaluate`. Two evidence modes: **pass-in** (caller supplies captured pages; no fetching; the core, reproducible deliverable) and **live** (crawl from a domain; mostly a design exercise, thin implementation is bonus-only).
-- **Catalog** (`fixtures/catalog.json` models the provided API): versioned, immutable definitions of features → required capabilities, plus archetypes. Fetch at runtime, cache in memory by version, never hard-code contents. The toy has 10 features / 13 capabilities; design for the real ~70 / ~155.
-- **Pipeline:** infer which features the site has (LLM/fuzzy) → derive required capabilities from the catalog `requires` map (pure deterministic code) → structured response with confidence + evidence. Keep the deterministic rollup cleanly separated from the LLM part; it's explicitly graded.
-- Also required: `GET /health`, `GET /version`, an OpenAPI 3.1 doc that matches the implementation, a Dockerfile that starts from env config alone (`CATALOG_BASE`, `LLM_API_KEY`, provider/model — nothing hard-coded).
+```bash
+python -m pytest tests/ -q                      # full suite; no network, no API key needed
+python -m pytest tests/test_rollup.py -q        # single file; -k <name> for a single test
+python scripts/export_openapi.py                # regenerate openapi.yaml after route/model changes
+uvicorn mock_catalog.server:app --port 9001     # mock catalog API (serves fixtures/catalog.json)
+uvicorn app.main:app --port 8000                # the evaluator (needs CATALOG_BASE + LLM key env)
+```
 
-## The rollup rule (graded contract — do not break)
+A real evaluation needs env: `CATALOG_BASE`, `ANTHROPIC_API_KEY` (or `LLM_API_KEY`). Tests never do.
 
-`fixtures/sites/*.expected.json` are the graded contract for the deterministic part: the set of present features and the full `requiredCapabilities` rollup (capabilityId, minLevel, criticality, sourceFeatureIds). Confidence values and evidence strings are illustrative only; lists are unordered.
+## Architecture
 
-The rule the fixtures pin down: for each capability required by any *present* feature,
-- `minLevel` = **max** level across contributing features,
-- `criticality` = **strictest** criticality across contributing features (must > should > nice),
-- and these roll up **independently** — the subtle case in `shopwave.expected.json` is `text-input`, where level 3 comes from a `should` requirement and `must` comes from different features at level 2, yielding `text-input @3 (must)`. A "take everything from the strictest feature" shortcut fails this.
-- `sourceFeatureIds` lists every present feature that requires the capability.
-- Feature `criticality` in `inferredFeatures` is carried through from the catalog (the matched archetype's feature list).
+Pipeline in [app/evaluator.py](app/evaluator.py) — the LLM appears exactly once:
 
-Any implementation change must keep both fixtures reproducing exactly, and the pass-in path must be deterministic: same request + catalog version + evaluator version ⇒ same answer (tested in CI without flaking).
+```
+pages → [LLM] infer features (app/inference.py, one call per cluster, parallel)
+      → choose archetype (app/archetype.py, deterministic F1 score)
+      → capability rollup (app/rollup.py, deterministic — THE GRADED PART)
+      → confidence math (app/evaluator.py, fixed formulas)
+```
 
-## Hard constraints (explicitly reviewed)
+- **LLM seam**: [app/llm.py](app/llm.py) — one-method protocol; Anthropic impl + `tests/fakes.py` ScriptedLLM. The LLM only ever judges feature presence and picks a confidence *word* (mapped to numbers in code: certain .95 / high .85 / likely .7 / unsure .5 / weak .3). Never let the LLM do arithmetic or touch capabilities.
+- **Catalog client**: [app/catalog.py](app/catalog.py) — HTTP fetch, cache keyed by version (immutable ⇒ cached forever), latest re-fetched with stale fallback when the API is down. Accepts an injected httpx transport for tests.
+- **HTTP surface**: [app/main.py](app/main.py) — `create_app()` factory with injectable settings/catalog/llm. Error taxonomy in its docstring; bodies always `{"error": {code, message}}`.
 
-- **The boundary:** the Evaluator never reads or reasons about the agent's *current* capability levels and never computes readiness/fit scores. If a change seems to need current levels, it's out of scope by design.
-- **Secrets:** `access.credentials` / `sessionCookies` and anything fetched with them live in memory only — never logged, persisted, cached, echoed in `trace` or responses, or leaked via error paths.
-- **Stateless:** no database, no persistence; the only allowed state is the in-memory catalog cache keyed by version.
-- **Gated sites are not errors:** a login wall you can't pass returns 200 with `accessOutcome: "public-only"` (or `"blocked"`) and reduced confidence. Non-200s are reserved for malformed requests, unreachable catalog, or a nonexistent pinned catalog version.
-- **No LLM arithmetic:** anything that must be exact (the rollup, criticality/level math) runs in plain code, not in a prompt.
+## Invariants (graded — do not break)
 
-## Out of scope — do not build
-
-Readiness/fit scoring, real login/MFA automation against third-party sites, any UI, database, persistence, CRM integrations, or catalog authoring/editing.
-
-## Judgment over feature count
-
-The submission is graded on the design decisions in README §5 (fuzzy/deterministic boundary, LLM-at-scale strategy, determinism/testability, confidence semantics, live-investigation design, API contract) more than on surface area. Decisions the human author must own belong in the project README, not just in code.
+- **Rollup rule**: minLevel = max across contributing features; criticality = strictest; rolled up **independently** (shopwave's `text-input @3 must` mixes sources). `tests/test_rollup.py` pins both fixtures exactly — they must always pass.
+- **Determinism**: with the LLM faked, responses are **byte-identical** (`tests/test_determinism.py`). Don't introduce unordered iteration, timestamps, or raw floats into responses; confidences are rounded to 2 decimals; features emit in catalog order, capabilities sorted by id.
+- **Secrets**: `access.credentials`/`sessionCookies` are never logged, cached, echoed in responses/trace/errors. The 422 handler reports field locations only, never values. `tests/test_api.py` greps responses for planted secrets.
+- **The boundary**: never read/compute the agent's current capability levels or any readiness/fit score.
+- **Gated site is a 200** with `accessOutcome: "public-only"`, not an error.
+- **openapi.yaml is generated** — edit routes/models, then run the export script; `tests/test_openapi.py` fails on drift. Never hand-edit openapi.yaml.

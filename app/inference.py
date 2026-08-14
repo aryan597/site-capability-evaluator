@@ -41,6 +41,11 @@ to your dashboard"), answer public-reachability questions present=false, \
 even though the shell pages themselves loaded without credentials. Only \
 answer present=true if actual product surfaces (store, app screens, \
 content) are usable without any login.
+- Async content loading is not client-side routing: content appearing in \
+place (infinite scroll, live-updating lists, results filling in after a \
+search) is DOM mutation. Judge single-page-app questions on whether \
+navigating between distinct product views happens without a full page \
+reload — distinct URLs per view are evidence against it.
 - evidence: one short sentence citing the page (by url or sourceType) and \
 the concrete wording or structure that supports your verdict. For \
 present=false, say what is missing.

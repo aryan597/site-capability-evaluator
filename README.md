@@ -149,7 +149,15 @@ Secrets: `access.credentials` / `sessionCookies` parse into memory, are never lo
 
 ## The prompts
 
-One system prompt + one user prompt per cluster — both in [app/inference.py](app/inference.py). The system prompt fixes the rules (judge only from provided pages; absence of evidence = absent; evidence must cite a page; confidence is one of five words; JSON only). The user prompt is assembled per cluster: the cluster's feature ids + questions, then the captured pages (url, sourceType, title, capped text).
+One system prompt + one user prompt per cluster — both in [app/inference.py](app/inference.py). The system prompt fixes the ground rules (judge only from the provided pages; absence of evidence means absent; evidence must cite a page; confidence is one of five words; JSON only). The user prompt is assembled per cluster: the cluster's feature ids + questions, then the captured pages (url, sourceType, title, capped text).
+
+Three further rules were added after watching real runs disagree with the worked fixtures. Each encodes a distinction the catalog's questions assume but never state:
+
+- **Evidence vs. speculation** — a named technology supports an inference (a named payment provider implies its iframe), but a named-but-uncaptured page or wizard step does not. Without this, a signup step labelled "Billing" gets read as a payment form.
+- **Product vs. public shell** — marketing, login, and signup pages being reachable never makes a gated product "publicly reachable". Without this, every SaaS site with a marketing page looks public.
+- **Async loading vs. client-side routing** — infinite scroll and live-updating lists are DOM mutation, not a single-page app; SPA-ness is about navigating between views without a reload. These map to different capabilities (`dom-mutation` vs `spa-state`), so conflating them corrupts the rollup.
+
+**The honest caveat:** these were tuned against the only two worked examples available, which is textbook overfitting risk. I kept each rule as a generalizable distinction rather than a fixture-specific fix, and I'd want the eval set below to confirm they help on sites I haven't seen. Prompt calibration without a measurement set is a guess with good manners.
 
 ## Where the toy let me cut corners
 

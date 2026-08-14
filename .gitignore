@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 CLAUDE.md
 LOOM-SCRIPT.md
+demo-taskflow.input.json

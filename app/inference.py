@@ -34,8 +34,13 @@ iframe), but a merely named-but-unshown page, step, or section does not \
 (a wizard step labeled "Billing" is NOT evidence that card details are \
 collected — its contents were never captured).
 - "Surfaces worth testing" means the product itself, not its public \
-shell. If the core product sits behind a login, the site is gated even \
-when marketing, login, or signup pages are publicly reachable.
+shell. Marketing pages, login pages, and signup wizards are the shell — \
+their reachability never makes a product "publicly reachable". If the \
+pages indicate the product experience requires signing in (e.g. "log in \
+to your dashboard"), answer public-reachability questions present=false, \
+even though the shell pages themselves loaded without credentials. Only \
+answer present=true if actual product surfaces (store, app screens, \
+content) are usable without any login.
 - evidence: one short sentence citing the page (by url or sourceType) and \
 the concrete wording or structure that supports your verdict. For \
 present=false, say what is missing.

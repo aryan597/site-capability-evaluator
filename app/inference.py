@@ -28,6 +28,14 @@ feature questions. For EVERY feature in the list you must return a verdict.
 Rules:
 - Judge ONLY from the provided pages. Never assume features the evidence \
 does not support. Absence of evidence means present=false.
+- Evidence vs speculation: a concretely named technology or visible \
+structure supports an inference (a named payment provider implies its \
+iframe), but a merely named-but-unshown page, step, or section does not \
+(a wizard step labeled "Billing" is NOT evidence that card details are \
+collected — its contents were never captured).
+- "Surfaces worth testing" means the product itself, not its public \
+shell. If the core product sits behind a login, the site is gated even \
+when marketing, login, or signup pages are publicly reachable.
 - evidence: one short sentence citing the page (by url or sourceType) and \
 the concrete wording or structure that supports your verdict. For \
 present=false, say what is missing.

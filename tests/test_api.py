@@ -1,5 +1,5 @@
 """End-to-end API tests: full pipeline with a scripted LLM and a fake
-catalog API — real HTTP semantics, no network, fully deterministic."""
+catalog API. Real HTTP semantics, no network, fully deterministic."""
 
 import json
 from pathlib import Path

@@ -3,7 +3,7 @@
 Cache semantics follow from the catalog's immutability guarantee:
   - a pinned version, once fetched, is cached forever (identical content);
   - "latest" is a moving pointer, so it is re-fetched on every unpinned
-    request — but the result is stored under its actual version, and the
+    request, but the result is stored under its actual version, and the
     last-known-latest is served as a fallback if the catalog API is down.
 """
 

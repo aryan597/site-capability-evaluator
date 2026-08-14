@@ -13,8 +13,8 @@ Error taxonomy (all bodies: {"error": {"code", "message"}}):
   503 CATALOG_UNAVAILABLE         catalog API down and nothing cached
 
 A gated site is NOT an error: it returns 200 with a weaker accessOutcome.
-Secrets note: error paths below never include request contents — only our
-own code/message strings — so credentials cannot leak through them.
+Secrets note: error paths below never include request contents, only our
+own code and message strings, so credentials cannot leak through them.
 """
 
 from fastapi import FastAPI, Request

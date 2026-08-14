@@ -1,4 +1,4 @@
-"""LLM feature inference — batched by cluster, run concurrently.
+"""LLM feature inference, batched by cluster and run concurrently.
 
 This is the only place the LLM is consulted, and the only question it is
 asked is a judgment call: "which of this cluster's features does the site
@@ -32,9 +32,9 @@ does not support. Absence of evidence means present=false.
 structure supports an inference (a named payment provider implies its \
 iframe), but a merely named-but-unshown page, step, or section does not \
 (a wizard step labeled "Billing" is NOT evidence that card details are \
-collected — its contents were never captured).
+collected, because its contents were never captured).
 - "Surfaces worth testing" means the product itself, not its public \
-shell. Marketing pages, login pages, and signup wizards are the shell — \
+shell. Marketing pages, login pages, and signup wizards are the shell; \
 their reachability never makes a product "publicly reachable". If the \
 pages indicate the product experience requires signing in (e.g. "log in \
 to your dashboard"), answer public-reachability questions present=false, \
@@ -45,7 +45,7 @@ content) are usable without any login.
 place (infinite scroll, live-updating lists, results filling in after a \
 search) is DOM mutation. Judge single-page-app questions on whether \
 navigating between distinct product views happens without a full page \
-reload — distinct URLs per view are evidence against it.
+reload; distinct URLs per view are evidence against it.
 - evidence: one short sentence citing the page (by url or sourceType) and \
 the concrete wording or structure that supports your verdict. For \
 present=false, say what is missing.

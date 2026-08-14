@@ -1,4 +1,4 @@
-"""Request/response models for POST /v1/evaluate — mirrors the brief's shapes.
+"""Request/response models for POST /v1/evaluate, mirroring the brief's shapes.
 
 Security note: Access/Credentials exist so the request parses, but they are
 secrets. They are never logged, never cached, never echoed in responses or

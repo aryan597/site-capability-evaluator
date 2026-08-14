@@ -25,7 +25,7 @@ class LLMClient(Protocol):
 
 
 class AnthropicClient:
-    """Anthropic Messages API — or anything speaking it.
+    """Anthropic Messages API, or anything speaking it.
 
     base_url makes this client point at any Anthropic-compatible server
     (e.g. LM Studio's local /v1/messages endpoint), in which case the

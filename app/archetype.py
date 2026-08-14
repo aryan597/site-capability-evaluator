@@ -8,7 +8,7 @@ judgment call. Score = harmonic mean (F1) of:
     (does the archetype account for what we actually found?).
 Coverage alone fails: a small generic archetype whose bundle is a subset
 of the present features scores a perfect 1.0. An archetypeHint from the
-caller adds a small bonus — evidence, not an override.
+caller adds a small bonus: evidence, not an override.
 
 The winning archetype's bundle also supplies the criticality carried
 through to inferredFeatures; present features outside the bundle default

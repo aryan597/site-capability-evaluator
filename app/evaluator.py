@@ -9,7 +9,7 @@ Confidence design (documented in README):
   - capability: max of contributing present features ("as sure as our
     best reason")
   - overall: criticality-weighted mean (must=3/should=2/nice=1) times an
-    access-quality factor — weaker evidence visibly lowers the number.
+    access-quality factor, so weaker evidence visibly lowers the number.
 """
 
 from app.archetype import choose_archetype, feature_criticality

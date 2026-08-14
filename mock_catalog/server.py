@@ -1,4 +1,4 @@
-"""Mock Catalog API — stands in for the production catalog service.
+"""Mock Catalog API, standing in for the production catalog service.
 
 Serves fixtures/catalog.json with the real API's semantics:
 

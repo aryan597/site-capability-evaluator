@@ -1,4 +1,4 @@
-"""Configuration — everything comes from environment variables.
+"""Configuration: everything comes from environment variables.
 
 The brief requires the container to start clean from env alone: no
 hard-coded hosts, models, or keys. EVALUATOR_VERSION is part of the
@@ -7,6 +7,8 @@ determinism key (request + catalog version + evaluator version => answer).
 
 import os
 from dataclasses import dataclass
+
+from dotenv import load_dotenv
 
 EVALUATOR_VERSION = "0.1.0"
 
@@ -23,6 +25,9 @@ class Settings:
 
 
 def load_settings() -> Settings:
+    # .env is a local-dev convenience. override=False means real environment
+    # variables always win, so a container still starts from env alone.
+    load_dotenv(override=False)
     return Settings(
         catalog_base=os.environ.get("CATALOG_BASE", "http://127.0.0.1:9001"),
         llm_provider=os.environ.get("LLM_PROVIDER", "anthropic"),

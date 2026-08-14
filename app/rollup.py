@@ -1,4 +1,4 @@
-"""Deterministic capability rollup — the exact, graded core.
+"""Deterministic capability rollup: the exact, graded core.
 
 Pure function of (present feature ids, catalog). No LLM, no I/O.
 
@@ -6,7 +6,7 @@ The rule (pinned by fixtures/sites/*.expected.json):
 for each capability required by any PRESENT feature,
   - minLevel    = max of the contributing features' minLevel demands
   - criticality = strictest of the contributing criticalities (must > should > nice)
-  - the two roll up INDEPENDENTLY — level and criticality may come from
+  - the two roll up INDEPENDENTLY; level and criticality may come from
     different features (shopwave's text-input: @3 from a "should" demand,
     "must" from level-2 demands => text-input @3 must)
   - sourceFeatureIds = every present feature that requires the capability

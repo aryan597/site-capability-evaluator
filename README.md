@@ -157,6 +157,8 @@ Three further rules were added after watching real runs disagree with the worked
 - **Product vs. public shell** — marketing, login, and signup pages being reachable never makes a gated product "publicly reachable". Without this, every SaaS site with a marketing page looks public.
 - **Async loading vs. client-side routing** — infinite scroll and live-updating lists are DOM mutation, not a single-page app; SPA-ness is about navigating between views without a reload. These map to different capabilities (`dom-mutation` vs `spa-state`), so conflating them corrupts the rollup.
 
+With these in place, both worked fixtures reproduced their full expected capability set on live runs against Claude — including shopwave's subtle `text-input @3 (must)`. **One passing run per fixture is not evidence of stability**, though; that is precisely what the eval set below is for.
+
 **The honest caveat:** these were tuned against the only two worked examples available, which is textbook overfitting risk. I kept each rule as a generalizable distinction rather than a fixture-specific fix, and I'd want the eval set below to confirm they help on sites I haven't seen. Prompt calibration without a measurement set is a guess with good manners.
 
 ## Where the toy let me cut corners

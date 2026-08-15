@@ -4,8 +4,6 @@ A stateless HTTP service that answers one question: given a company's website, w
 
 It infers site *features* from page evidence using an LLM, then derives *required capabilities* from the versioned catalog using plain code. It never reads the agent's current levels and never computes a readiness or fit score; that happens downstream.
 
-The original assignment brief is in [docs/BRIEF.md](docs/BRIEF.md).
-
 ## How to run
 
 Copy the example config and fill in your key:
